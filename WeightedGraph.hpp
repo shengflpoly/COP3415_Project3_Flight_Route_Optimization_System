@@ -5,12 +5,13 @@
 class Edge {
 public:
     int neighbor;
-    int weight;
+    int distance;
+    int cost;
 
-    Edge(int n, int w) : neighbor(n), weight(w) {}
+    Edge(int n, int d, int c) : neighbor(n), distance(d), cost(c) {}
 
     bool operator<(const Edge& other) const {
-        return weight < other.weight;
+        return distance < other.distance;
     }
 };
 
@@ -19,12 +20,12 @@ class WeightedGraph {
 public:
 
     void insertVertex(const T& v);
-    void insertEdge(const T& v1, const T& v2, int weight = 1);
+    void insertEdge(const T& v1, const T& v2, int distance, int cost);
     void print() const;
 
     void DFS() const;
     void BFS(int start = 0) const;
-    int shortestPath(const T& src, const T& dest) const;
+    int shortestPath(const T& src, const T& dest, bool control) const;
     bool isConnected() const;
 
 

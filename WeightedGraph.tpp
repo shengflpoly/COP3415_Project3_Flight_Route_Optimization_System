@@ -7,7 +7,7 @@
 template <typename T>
 void WeightedGraph<T>::insertVertex(const T& v) {
     if (getVertexIndex(v) != -1) {
-        std::cout << "insertVertex: vertex already exist\n";
+        //std::cout << "insertVertex: vertex already exist\n";
         return;
     }
 
@@ -18,7 +18,7 @@ void WeightedGraph<T>::insertVertex(const T& v) {
 
 // TODO
 template <typename T>
-void WeightedGraph<T>::insertEdge(const T& v1, const T& v2, int weight) {
+void WeightedGraph<T>::insertEdge(const T& v1, const T& v2, int distance, int cost) {
     int i1 = getVertexIndex(v1);
     int i2 = getVertexIndex(v2);
     if (i1 == -1 || i2 == -1) {
@@ -27,10 +27,11 @@ void WeightedGraph<T>::insertEdge(const T& v1, const T& v2, int weight) {
     }
 
     if (!hasEdge(i1, i2)) {
-        edges[i1].push_back(Edge(i2, weight));
-        if (i1 != i2) {
-            edges[i2].push_back(Edge(i1, weight));
-        }
+        // directed graph
+        edges[i1].push_back(Edge(i2, distance, cost));
+        // if (i1 != i2) {
+        //     edges[i2].push_back(Edge(i1, distance, cost));
+        // }
     }
 }   
 
@@ -51,7 +52,7 @@ void WeightedGraph<T>::print() const {
     for (int i = 0; i < vertices.size(); i++) {
         std::cout << "{ " << vertices[i] << ": ";
         for(int j = 0; j < edges[i].size(); j++) {
-            std::cout << "(" << vertices[edges[i][j].neighbor] << ", " << edges[i][j].weight << ")";
+            std::cout << "(" << vertices[edges[i][j].neighbor] << ", dist=" << edges[i][j].distance << ", cost=" << edges[i][j].cost << ")";
         }
         std::cout << " }\n";
     }
@@ -128,7 +129,7 @@ void WeightedGraph<T>::BFS(int start) const {
 
 // TODO
 template <typename T>
-int WeightedGraph<T>::shortestPath(const T& src, const T& dest) const {
+int WeightedGraph<T>::shortestPath(const T& src, const T& dest, bool control) const {
     // Find indices
     int i_src = getVertexIndex(src);
     int i_dest = getVertexIndex(dest);
@@ -162,7 +163,8 @@ int WeightedGraph<T>::shortestPath(const T& src, const T& dest) const {
         // Insert the edge into the heap
         for (const Edge& e : edges[unvisited]) {
             int visit = e.neighbor;
-            int weight = e.weight;
+            int weight = control ? e.distance : e.cost; //control, e.distance. !control, e.cost
+
             if (!visited[visit] && (distances[unvisited] + weight < distances[visit])) {
                 distances[visit] = distances[unvisited] + weight;
                 heap.insert(Edge(visit, distances[visit]));
