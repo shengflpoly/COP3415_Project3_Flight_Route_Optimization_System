@@ -2,13 +2,24 @@
 #define WEIGHTEDGRAPH_HPP
 #include <vector>
 
+class Edge {
+public:
+    int neighbor;
+    int weight;
+
+    Edge(int n, int w) : neighbor(n), weight(w) {}
+
+    bool operator<(const Edge& other) const {
+        return weight < other.weight;
+    }
+};
 
 template <typename T>
 class WeightedGraph {
 public:
 
     void insertVertex(const T& v);
-    void insertEdge(const T& v1, const T& v2);
+    void insertEdge(const T& v1, const T& v2, int weight = 1);
     void print() const;
 
     void DFS() const;
@@ -19,7 +30,7 @@ public:
 
 private:
     std::vector<T> vertices; 
-    std::vector<std::vector<int>> edges; 
+    std::vector<std::vector<Edge>> edges; 
 
     
     int getVertexIndex(const T& vs) const;
