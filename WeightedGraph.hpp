@@ -7,11 +7,12 @@ public:
     int neighbor;
     int distance;
     int cost;
+    int weight;
 
-    Edge(int n, int d, int c) : neighbor(n), distance(d), cost(c) {}
+    Edge(int n, int d = 0, int c = 0, int w = 0) : neighbor(n), distance(d), cost(c), weight(w) {}
 
     bool operator<(const Edge& other) const {
-        return distance < other.distance;
+        return weight < other.weight;
     }
 };
 

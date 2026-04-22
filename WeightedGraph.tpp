@@ -150,7 +150,7 @@ int WeightedGraph<T>::shortestPath(const T& src, const T& dest, bool control) co
     distances[i_src] = 0;
     // Perform BFS and update distances
     MinHeap<Edge> heap;
-    heap.insert(Edge(i_src, 0));
+    heap.insert(Edge(i_src, 0, 0, 0));
 
     while (!heap.empty()) {
         Edge smallest = heap.deleteMin();
@@ -164,10 +164,10 @@ int WeightedGraph<T>::shortestPath(const T& src, const T& dest, bool control) co
         for (const Edge& e : edges[unvisited]) {
             int visit = e.neighbor;
             int weight = control ? e.distance : e.cost; //control, e.distance. !control, e.cost
-
+            
             if (!visited[visit] && (distances[unvisited] + weight < distances[visit])) {
                 distances[visit] = distances[unvisited] + weight;
-                heap.insert(Edge(visit, distances[visit]));
+                heap.insert(Edge(visit, e.distance, e.cost, distances[visit]));
             }
         }
     }
