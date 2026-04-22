@@ -5,28 +5,32 @@
 #include <stdexcept>
 #include <vector>
 #include <string>
-#include <regex>
 
-void runFromFile(const char* file_name, WeightedGraph<Edge>& graph);
+
+void runFromFile(const char* file_name, WeightedGraph<std::string>& graph);
 std::vector<std::string> split(const std::string& s);
-void runQuery(const std::vector<std::string>& query, WeightedGraph<Edge>& graph);
+void runQuery(const std::vector<std::string>& query, WeightedGraph<std::string>& graph);
+
 int main(int argc, char** argv) {
     if (argc != 2) {
         std::cerr << "Error: incorrect number of arguments\n";
         return 1;
     }
 
-    WeightedGraph<Edge> graph;
+    WeightedGraph<std::string> graph;
     try {
         runFromFile(argv[1], graph);
     }
     catch(std::logic_error& ex) {
         std::cout << ex.what() << std::endl;
     }
+
+    graph.print();
+
     return 0;
 }
 
-void runFromFile(const char* file_name, WeightedGraph<Edge>& graph) {
+void runFromFile(const char* file_name, WeightedGraph<std::string>& graph) {
     std::ifstream in;
 
     in.open(file_name);
@@ -48,20 +52,34 @@ void runFromFile(const char* file_name, WeightedGraph<Edge>& graph) {
 
 std::vector<std::string> split(const std::string& s) {
     std::vector<std::string> out;
-    std::regex del(",");
+    std::string cur;
+    bool quote = false;
 
-    std::sregex_token_iterator it(s.begin(), s.end(), del, -1);
-
-    std::sregex_token_iterator end;
-
-    while (it != end) {
-        out.push_back(*it);
-        ++it;
+    for (char c : s) {
+        if (c == '"') {
+            quote = !quote;
+        }
+        else if (c == ',' && (quote == false)) {
+            out.push_back(cur);
+            cur.clear();
+        }
+        else {
+            cur += c;
+        }
     }
-
+    out.push_back(cur);
     return out;
 }
 
-void runQuery(const std::vector<std::string>& query, WeightedGraph<Edge>& graph) {
-    
+void runQuery(const std::vector<std::string>& query, WeightedGraph<std::string>& graph) {
+    if (query[0] == "Origin_airport") return;
+
+    std::string origin = query[0];
+    std::string dest = query[1];
+    int distance = std::stoi(query[4]);
+    int cost = std::stoi(query[5]);
+
+    graph.insertVertex(origin);
+    graph.insertVertex(dest);
+    graph.insertEdge(origin, dest, distance, cost);
 }
