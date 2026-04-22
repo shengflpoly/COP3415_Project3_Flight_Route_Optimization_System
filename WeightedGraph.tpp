@@ -1,6 +1,8 @@
 #include "WeightedGraph.hpp"
 #include <iostream>
 #include <queue>
+#include "MinHeap.hpp"
+#include <climits>
 
 template <typename T>
 void WeightedGraph<T>::insertVertex(const T& v) {
@@ -10,13 +12,13 @@ void WeightedGraph<T>::insertVertex(const T& v) {
     }
 
     vertices.push_back(v);
-    std::vector<int> tmp; // TODO
+    std::vector<Edge> tmp; // TODO
     edges.push_back(tmp); //insert empty vector to the edges
 }
 
 // TODO
 template <typename T>
-void WeightedGraph<T>::insertEdge(const T& v1, const T& v2) {
+void WeightedGraph<T>::insertEdge(const T& v1, const T& v2, int weight) {
     int i1 = getVertexIndex(v1);
     int i2 = getVertexIndex(v2);
     if (i1 == -1 || i2 == -1) {
@@ -25,9 +27,9 @@ void WeightedGraph<T>::insertEdge(const T& v1, const T& v2) {
     }
 
     if (!hasEdge(i1, i2)) {
-        edges[i1].push_back(i2);
+        edges[i1].push_back(Edge(i2, weight));
         if (i1 != i2) {
-            edges[i2].push_back(i1);
+            edges[i2].push_back(Edge(i1, weight));
         }
     }
 }   
@@ -49,7 +51,7 @@ void WeightedGraph<T>::print() const {
     for (int i = 0; i < vertices.size(); i++) {
         std::cout << "{ " << vertices[i] << ": ";
         for(int j = 0; j < edges[i].size(); j++) {
-            std::cout << vertices[edges[i][j]] << ' ';
+            std::cout << "(" << vertices[edges[i][j].neighbor] << ", " << edges[i][j].weight << ")";
         }
         std::cout << " }\n";
     }
@@ -62,8 +64,8 @@ bool WeightedGraph<T>::hasEdge(int i1, int i2) const {
         return false;
     }
 
-    for (int i : edges[i1]) {
-        if (i == i2) {
+    for (const Edge& e : edges[i1]) {
+        if (e.neighbor == i2) {
             return true;
         }
     }
@@ -87,9 +89,9 @@ void WeightedGraph<T>::DFS(int i, std::vector<bool>& visited) const {
     std::cout << vertices[i] << " -> ";
 
     // Look through all the neighbours
-    for (int j : edges[i]) {
-        if (!visited[j]) {
-            DFS(j, visited);
+    for (const Edge& e : edges[i]) {
+        if (!visited[e.neighbor]) {
+            DFS(e.neighbor, visited);
         }
     }
 }
@@ -113,10 +115,10 @@ void WeightedGraph<T>::BFS(int start) const {
         where_to_go.pop();
 
         // Explore the neighbors
-        for (int j : edges[cur]) {
-            if (!discovered[j]) {
-                where_to_go.push(j);
-                discovered[j] = true;
+        for (const Edge& e : edges[cur]) {
+            if (!discovered[e.neighbor]) {
+                where_to_go.push(e.neighbor);
+                discovered[e.neighbor] = true;
             }
         }
 
@@ -130,6 +132,7 @@ int WeightedGraph<T>::shortestPath(const T& src, const T& dest) const {
     // Find indices
     int i_src = getVertexIndex(src);
     int i_dest = getVertexIndex(dest);
+    std::vector<bool> visited(vertices.size(), false);
 
     // Check edge case
     if (i_src == -1 || i_dest == -1) {
@@ -139,29 +142,30 @@ int WeightedGraph<T>::shortestPath(const T& src, const T& dest) const {
     if (i_src == i_dest) {
         return 0;
     }
+    
     // Create distances vector
-    std::vector<int> distances(vertices.size()); // distances from source to all other nodes
+    std::vector<int> distances(vertices.size(), INT_MAX); // distances from source to all other nodes
     // Set initial distances
-    for (int i = 0; i < distances.size(); i++) {
-        distances[i] = (i == i_src) ? 0 : -1;
-    }
-
+    distances[i_src] = 0;
     // Perform BFS and update distances
-    std::queue<int> q;
-    q.push(i_src);
+    MinHeap<Edge> heap;
+    heap.insert(Edge(i_src, 0));
 
-    while (!q.empty()) {
-        int cur = q.front();
-        q.pop();
+    while (!heap.empty()) {
+        Edge smallest = heap.deleteMin();
+        int unvisited = smallest.neighbor;
+        if (visited[unvisited]) continue;
+        visited[unvisited] = true;
+        if (unvisited == i_dest) return distances[unvisited];
 
-        // Check the neighbors of current node
-        for (int i : edges[cur]) {
-            if (distances[i] == -1) {
-                distances[i] = distances[cur] + 1;
-                q.push(i);
-            }
-            if (i == i_dest) {
-                return distances[i];
+        // Check the distance (if the distance is smaller - update the distance)
+        // Insert the edge into the heap
+        for (const Edge& e : edges[unvisited]) {
+            int visit = e.neighbor;
+            int weight = e.weight;
+            if (!visited[visit] && (distances[unvisited] + weight < distances[visit])) {
+                distances[visit] = distances[unvisited] + weight;
+                heap.insert(Edge(visit, distances[visit]));
             }
         }
     }
