@@ -25,7 +25,9 @@ int main(int argc, char** argv) {
         std::cout << ex.what() << std::endl;
     }
 
-    graph.print();
+    //graph.print();
+    //graph.shortestPath("IAD", "MIA");
+    graph.kruskal();
 
     return 0;
 }
@@ -81,5 +83,5 @@ void runQuery(const std::vector<std::string>& query, WeightedGraph<std::string>&
 
     graph.insertVertex(origin);
     graph.insertVertex(dest);
-    graph.insertEdge(origin, dest, distance, cost);
+    graph.insertEdge(origin, dest, distance, cost, false);
 }

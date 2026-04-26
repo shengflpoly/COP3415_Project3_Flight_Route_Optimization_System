@@ -4,6 +4,7 @@
 #include "MinHeap.hpp"
 #include <climits>
 
+
 template <typename T>
 void WeightedGraph<T>::insertVertex(const T& v) {
     if (getVertexIndex(v) != -1) {
@@ -12,13 +13,13 @@ void WeightedGraph<T>::insertVertex(const T& v) {
     }
 
     vertices.push_back(v);
-    std::vector<Edge> tmp; // TODO
+    std::vector<Edge> tmp; 
     edges.push_back(tmp); //insert empty vector to the edges
 }
 
 // TODO
 template <typename T>
-void WeightedGraph<T>::insertEdge(const T& v1, const T& v2, int distance, int cost) {
+void WeightedGraph<T>::insertEdge(const T& v1, const T& v2, int distance, int cost, bool direct) {
     int i1 = getVertexIndex(v1);
     int i2 = getVertexIndex(v2);
     if (i1 == -1 || i2 == -1) {
@@ -29,9 +30,9 @@ void WeightedGraph<T>::insertEdge(const T& v1, const T& v2, int distance, int co
     if (!hasEdge(i1, i2)) {
         // directed graph
         edges[i1].push_back(Edge(i2, distance, cost));
-        // if (i1 != i2) {
-        //     edges[i2].push_back(Edge(i1, distance, cost));
-        // }
+        if (!direct && i1 != i2) {
+            edges[i2].push_back(Edge(i1, distance, cost));
+        }
     }
 }   
 
@@ -129,15 +130,16 @@ void WeightedGraph<T>::BFS(int start) const {
 
 // TODO
 template <typename T>
-int WeightedGraph<T>::shortestPath(const T& src, const T& dest, bool control) const {
+int WeightedGraph<T>::shortestPath(const T& src, const T& dest) const {
     // Find indices
     int i_src = getVertexIndex(src);
     int i_dest = getVertexIndex(dest);
     std::vector<bool> visited(vertices.size(), false);
+    std::vector<int> prev(vertices.size(), -1);
 
     // Check edge case
     if (i_src == -1 || i_dest == -1) {
-        std::cout << "shortestPath: incorrect indices";
+        std::cout << "shortest route from " << src << " to " << dest << ": None\n";
         return -1;
     }
     if (i_src == i_dest) {
@@ -146,31 +148,120 @@ int WeightedGraph<T>::shortestPath(const T& src, const T& dest, bool control) co
     
     // Create distances vector
     std::vector<int> distances(vertices.size(), INT_MAX); // distances from source to all other nodes
+    std::vector<int> cost(vertices.size(), INT_MAX);
     // Set initial distances
     distances[i_src] = 0;
+    cost[i_src] = 0;
+
     // Perform BFS and update distances
     MinHeap<Edge> heap;
-    heap.insert(Edge(i_src, 0));
+    heap.insert(Edge(i_src, 0, 0, 0));
 
     while (!heap.empty()) {
         Edge smallest = heap.deleteMin();
-        int unvisited = smallest.neighbor;
-        if (visited[unvisited]) continue;
-        visited[unvisited] = true;
-        if (unvisited == i_dest) return distances[unvisited];
+        int cur = smallest.neighbor;
+        
+        if (visited[cur]) continue;
+        visited[cur] = true;
+        //if (cur == i_dest) return distances[cur];
 
         // Check the distance (if the distance is smaller - update the distance)
         // Insert the edge into the heap
-        for (const Edge& e : edges[unvisited]) {
+        for (const Edge& e : edges[cur]) {
             int visit = e.neighbor;
-            int weight = control ? e.distance : e.cost; //control, e.distance. !control, e.cost
+            //int weight = control ? e.distance : e.cost; //control, e.distance. !control, e.cost
+            int newDist = distances[cur] + e.distance;
+            int newCost = cost[cur] + e.cost;
+            if (!visited[visit] && newDist < distances[visit]) {
+                distances[visit] = newDist;
+                cost[visit] = newCost;
+                prev[visit] = cur;
+                heap.insert(Edge(visit, e.distance, e.cost, distances[visit]));
+            }
+        }
+    }
+    std::vector<int> path;
+    std::cout << "Shortest route from " << src << " to " << dest << ": ";
+    for (int at = i_dest; at != -1; at = prev[at]) {
+        path.push_back(at);
+    }
+    for (int i = path.size() - 1; i >= 0; i--) {
+        std::cout << vertices[path[i]];
+        if (i != 0) std::cout << " -> ";
+    }
 
-            if (!visited[visit] && (distances[unvisited] + weight < distances[visit])) {
-                distances[visit] = distances[unvisited] + weight;
-                heap.insert(Edge(visit, distances[visit]));
+    std::cout << ". The lenght is " << distances[i_dest] << ". The cost is " << cost[i_dest] << ".\n";
+    return distances[i_dest]; 
+}
+
+template <typename T>
+void WeightedGraph<T>::kruskal() {
+    struct KEdge {
+        int u, v, cost;
+    };
+
+    std::vector<KEdge> allEdges;
+
+    for (int i = 0; i < vertices.size(); i++) {
+        for (const Edge& e : edges[i]) {
+            if (i < e.neighbor) {
+                allEdges.push_back({i, e.neighbor, e.cost});
             }
         }
     }
 
-    return -1; // No path exists
+    int total = 0;
+    int n = vertices.size();
+    std::vector<int> parent(n);
+    std::vector<int> rank(n, 0);
+
+    for (int i = 0; i < n; i++) parent[i] = i;
+
+    for (int i = 0; i < allEdges.size() - 1; i++) {
+        int minIdx = i;
+        for (int j = i + 1; j < allEdges.size(); j++) {
+            if (allEdges[j].cost < allEdges[minIdx].cost) {
+                minIdx = j;
+            }
+        }
+        std::swap(allEdges[i], allEdges[minIdx]);
+    }
+
+    std::cout << "\nMinimum Spanning Tree:\n";
+    std::cout << "Edge\t\tWeight\n";
+
+    for (const auto& e : allEdges) {
+        int rootU = findSet(e.u, parent);
+        int rootV = findSet(e.v, parent);
+
+        if (rootU != rootV) {
+            unionSet(rootU, rootV, parent, rank);
+
+            std::cout << vertices[e.u] << " - " << vertices[e.v] << "\t" << e.cost << "\n";
+
+            total += e.cost;
+        }
+    }
+    std::cout << "Total cost of MST: " << total << "\n";
+}
+
+template <typename T>
+int WeightedGraph<T>::findSet(int x, std::vector<int>& parent) {
+    if (parent[x] != x) parent[x] = findSet(parent[x], parent);
+    return parent[x];
+}
+
+template <typename T>
+void WeightedGraph<T>::unionSet(int a, int b, std::vector<int>& parent, std::vector<int>& rank) {
+    int rootA = findSet(a, parent);
+    int rootB = findSet(b, parent);
+
+    if (rootA != rootB) {
+        if (rank[rootA] < rank[rootB]) parent[rootA] = rootB;
+        else if (rank[rootA] > rank[rootB]) parent[rootB] = rootA;
+        else {
+            parent[rootB] = rootA;
+            rank[rootA]++;
+        }
+    }
 }
