@@ -21,14 +21,15 @@ class WeightedGraph {
 public:
 
     void insertVertex(const T& v);
-    void insertEdge(const T& v1, const T& v2, int distance, int cost);
+    void insertEdge(const T& v1, const T& v2, int distance, int cost, bool direct = true);
     void print() const;
 
     void DFS() const;
     void BFS(int start = 0) const;
-    int shortestPath(const T& src, const T& dest, bool control) const;
+    int shortestPath(const T& src, const T& dest) const;
     bool isConnected() const;
 
+    void kruskal();
 
 private:
     std::vector<T> vertices; 
@@ -39,6 +40,9 @@ private:
 
     bool hasEdge(int i1, int i2) const;
     void DFS(int i, std::vector<bool>& visited) const;
+
+    int findSet(int x, std::vector<int>& parent);
+    void unionSet(int a, int b, std::vector<int>& parent, std::vector<int>& rank);
 };
 
 #include "WeightedGraph.tpp"
