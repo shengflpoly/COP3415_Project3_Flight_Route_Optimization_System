@@ -30,6 +30,11 @@ public:
     bool isConnected() const;
 
     void kruskal();
+    // Task 6
+    WeightedGraph<T> buildUndirectedGraph() const;
+    
+    // Task 7
+    void prim() const;
 
 private:
     std::vector<T> vertices; 
