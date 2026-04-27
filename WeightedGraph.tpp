@@ -265,3 +265,148 @@ void WeightedGraph<T>::unionSet(int a, int b, std::vector<int>& parent, std::vec
         }
     }
 }
+
+
+// Task 6:
+template <typename T>
+WeightedGraph<T> WeightedGraph<T>::buildUndirectedGraph() const
+{
+    WeightedGraph<T> undirected;
+    int n = vertices.size();
+
+    // This copies all vertices into the new graph
+    for(int i = 0; i < n; i++) {
+        undirected.insertVertex(vertices[i]);
+    }
+
+    // This is Pass 1 which cheacks for each directed edge u -> v where u < v,
+    for (int u = 0; u < n; u++) {
+        for (const Edge& e : edges[u]) {
+            int v = e.neighbor;
+
+            // This line stops a pair from being proccessed twice
+            if (u >= v) continue;
+
+            int costUV = e.cost;
+
+            // Check if the reverse edge exists
+            int costVU = -1;
+            for (const Edge& rev : edges[v]) {
+                if (rev.neighbor == u) {
+                    costVU = rev.cost;
+                    break;
+                }
+            }
+
+            // If both directions exist pick the min cost
+            int minCost = costUV;
+            if (costVU != -1 && costVU < minCost) {
+                minCost = costVU;
+            }
+
+            undirected.insertEdge(vertices[u], vertices[v], 0, minCost, false);
+        }
+    }
+
+    // This is Pass 2 which handles edges v -> u where v > u but u -> v does NOT exist
+   
+    for (int v=0; v < n; v++) {
+        for (const Edge& e : edges[v]) {
+            int u = e.neighbor;
+
+            if (v<= u) continue;
+
+            bool forwardExists = false;
+            for (const Edge& fwd : edges[u]) {
+                if (fwd.neighbor == v) {
+                    forwardExists = true;
+                    break;
+                }
+            }
+
+            if (!forwardExists) {
+                undirected.insertEdge(vertices[u], vertices[v], 0, e.cost, false);
+            }
+        }
+    }
+
+    std::cout<< "\nUndirected graph created from directed graph.\n";
+    std::cout << "Number of vertices: " << undirected.vertices.size() << "\n";
+
+    // This counts undirected edges 
+    int edgeCount = 0;
+    for (int i = 0; i < (int)undirected.edges.size(); i++){
+        edgeCount += undirected.edges[i].size();
+    }
+    std::cout << "Number of undirected edges: " << edgeCount / 2 << "\n";
+
+    return undirected;
+}
+
+
+
+
+// Task 7:
+template <typename T>
+void WeightedGraph<T>::prim() const
+{
+    int n = vertices.size();
+    if(n == 0) {
+        std::cout << "Graph is empty. Cannot form MST.\n";
+        return;
+    }
+     // inMST tracks what is already in the MST, key is the min cost to connect each vertex to MST
+    std::vector<bool> inMST(n, false);
+    std::vector<int> key(n, INT_MAX);
+    std::vector<int> parent(n, -1);
+   
+    key[0] = 0;
+
+  
+    MinHeap<Edge> heap;
+    heap.insert(Edge(0, 0, 0, 0));
+
+    int verticesAdded = 0;
+
+    while (!heap.empty()) {
+        Edge minEdge = heap.deleteMin();
+        int u = minEdge.neighbor;
+
+        if (inMST[u]) continue;
+
+        inMST[u] = true;
+        verticesAdded++;
+
+        for (const Edge& e : edges[u]) {
+            int v = e.neighbor;
+
+            if (!inMST[v] && e.cost < key[v]){
+                key[v] = e.cost;
+                parent[v] = u;
+                heap.insert(Edge(v, 0, e.cost, e.cost));
+            }
+        }
+    }
+
+    // The graph is disconnected if we didnt reach all of the verticies
+    if (verticesAdded< n) {
+        std::cout << "\nThe graph is disconnected. A Minimum Spanning Tree cannot be formed.\n";
+        return;
+    }
+
+    // THis prints MST edges and total cost
+    int totalCost = 0;
+    std::cout << "\nMinimum Spanning Tree (Prim's Algorithm):\n";
+    std::cout << "Edge\t\tWeight\n";
+
+    for (int i = 1; i < n; i++) {
+        if (parent[i] != -1) {
+            std::cout << vertices[parent[i]] << " - " << vertices[i]
+                      << "\t\t" << key[i] << "\n";
+            totalCost += key[i];
+        }
+    }
+
+    std::cout << "Total Cost of MST: " << totalCost << "\n";
+}
+

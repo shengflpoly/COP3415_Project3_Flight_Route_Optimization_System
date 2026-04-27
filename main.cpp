@@ -29,6 +29,12 @@ int main(int argc, char** argv) {
     //graph.shortestPath("IAD", "MIA");
     graph.kruskal();
 
+    // Task 6
+    WeightedGraph<std::string> undirected = graph.buildUndirectedGraph();
+    
+    // Task 7
+    undirected.prim();
+
     return 0;
 }
 
@@ -83,5 +89,5 @@ void runQuery(const std::vector<std::string>& query, WeightedGraph<std::string>&
 
     graph.insertVertex(origin);
     graph.insertVertex(dest);
-    graph.insertEdge(origin, dest, distance, cost, false);
+    graph.insertEdge(origin, dest, distance, cost, true);
 }
