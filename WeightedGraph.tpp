@@ -3,7 +3,7 @@
 #include <queue>
 #include "MinHeap.hpp"
 #include <climits>
-
+#include <algorithm>
 
 template <typename T>
 void WeightedGraph<T>::insertVertex(const T& v) {
@@ -15,6 +15,7 @@ void WeightedGraph<T>::insertVertex(const T& v) {
     vertices.push_back(v);
     std::vector<Edge> tmp; 
     edges.push_back(tmp); //insert empty vector to the edges
+    states.push_back("");
 }
 
 // TODO
@@ -29,9 +30,9 @@ void WeightedGraph<T>::insertEdge(const T& v1, const T& v2, int distance, int co
 
     if (!hasEdge(i1, i2)) {
         // directed graph
-        edges[i1].push_back(Edge(i2, distance, cost));
+        edges[i1].push_back(Edge(i2, distance, cost, distance));
         if (!direct && i1 != i2) {
-            edges[i2].push_back(Edge(i1, distance, cost));
+            edges[i2].push_back(Edge(i2, distance, cost, distance));
         }
     }
 }   
@@ -128,9 +129,9 @@ void WeightedGraph<T>::BFS(int start) const {
 
 }
 
-// TODO
+
 template <typename T>
-int WeightedGraph<T>::shortestPath(const T& src, const T& dest) const {
+int WeightedGraph<T>::shortestPath(const T& src, const T& dest, bool print) const {
     // Find indices
     int i_src = getVertexIndex(src);
     int i_dest = getVertexIndex(dest);
@@ -139,7 +140,9 @@ int WeightedGraph<T>::shortestPath(const T& src, const T& dest) const {
 
     // Check edge case
     if (i_src == -1 || i_dest == -1) {
-        std::cout << "shortest route from " << src << " to " << dest << ": None\n";
+        if (print) { // EDIT
+            std::cout << "Shortest route from " << src << " to " << dest << ": None\n";
+        }
         return -1;
     }
     if (i_src == i_dest) {
@@ -180,17 +183,27 @@ int WeightedGraph<T>::shortestPath(const T& src, const T& dest) const {
             }
         }
     }
-    std::vector<int> path;
-    std::cout << "Shortest route from " << src << " to " << dest << ": ";
-    for (int at = i_dest; at != -1; at = prev[at]) {
-        path.push_back(at);
-    }
-    for (int i = path.size() - 1; i >= 0; i--) {
-        std::cout << vertices[path[i]];
-        if (i != 0) std::cout << " -> ";
-    }
 
-    std::cout << ". The lenght is " << distances[i_dest] << ". The cost is " << cost[i_dest] << ".\n";
+    if (distances[i_dest] == INT_MAX) { 
+        if (print) {
+            std::cout << "Shortest route from " << src << " to " << dest << ": None\n";
+        } 
+        return -1;
+    } 
+
+    if (print) {
+        std::vector<int> path;
+        std::cout << "Shortest route from " << src << " to " << dest << ": ";
+        for (int at = i_dest; at != -1; at = prev[at]) {
+            path.push_back(at);
+        }
+        for (int i = path.size() - 1; i >= 0; i--) {
+            std::cout << vertices[path[i]];
+            if (i != 0) std::cout << " -> ";
+        }
+
+        std::cout << ". The lenght is " << distances[i_dest] << ". The cost is " << cost[i_dest] << ".\n";
+    }
     return distances[i_dest]; 
 }
 
@@ -263,5 +276,173 @@ void WeightedGraph<T>::unionSet(int a, int b, std::vector<int>& parent, std::vec
             parent[rootB] = rootA;
             rank[rootA]++;
         }
+    }
+}
+
+//
+template <typename T>
+void WeightedGraph<T>::setState(const T& airport, const std::string& state) {
+    int index = getVertexIndex(airport);
+    if (index != -1) {
+        states[index] = state;
+    }
+}
+
+//
+template <typename T>
+void WeightedGraph<T>::shortPathWithStopHelper(
+    int cur,
+    int dest,
+    int edgesLeft,
+    std::vector<bool>& visited,
+    std::vector<int>& path,
+    int currentDistance,
+    int currentCost,
+    int& bestDistance,
+    int& bestCost,
+    std::vector<int>& bestPath
+) const {
+    if (edgesLeft == 0) {
+        if (cur == dest && currentDistance < bestDistance) {
+            bestDistance = currentDistance;
+            bestCost = currentCost;
+            bestPath = path;
+        }
+        return;
+    }
+
+    for (const Edge& e : edges[cur]) {
+        int next = e.neighbor;
+
+        if (!visited[next]) {
+            visited[next] = true;
+            path.push_back(next);
+
+            shortPathWithStopHelper(
+                next, dest, edgesLeft - 1,
+                visited, path,
+                currentDistance + e.distance,
+                currentCost + e.cost,
+                bestDistance, bestCost, bestPath
+            );
+
+            path.pop_back();
+            visited[next] = false;
+        }
+    }
+}
+
+//Task 3
+template <typename T>
+void WeightedGraph<T>::shortPathToState(const T& src, const std::string& destState) const {
+    int i_src = getVertexIndex(src);
+
+    if (i_src == -1) {
+        std::cout << "Origin airport " << src << " does not exist.\n";
+        return;
+    }
+
+    bool foundAirport = false;
+    bool foundPath = false;
+
+    for (int i = 0; i < vertices.size(); i++) {
+        if (states[i] == destState) {
+            foundAirport = true;
+
+            int d = shortestPath(src, vertices[i], false); // EDIT
+            if (d != -1) {
+                shortestPath(src, vertices[i], true); // EDIT
+                foundPath = true;
+            }
+        }
+    }
+
+    if (!foundAirport) {
+        std::cout << "No airports found in state " << destState << ".\n";
+    }
+    else if (!foundPath) {
+        std::cout << "No paths exist from " << src << " to state " << destState << ".\n";
+    }
+}
+
+//Task 4
+template <typename T>
+void WeightedGraph<T>::shortPathWithStop(const T& src, const T& dest, int stops) const {
+    int i_src = getVertexIndex(src);
+    int i_dest = getVertexIndex(dest);
+
+    if (i_src == -1 || i_dest == -1) {
+        std::cout << "Invalid airports.\n";
+        return;
+    }
+
+    int edgesLeft = stops + 1;
+
+    std::vector<bool> visited(vertices.size(), false);
+    std::vector<int> path, bestPath;
+
+    int bestDistance = INT_MAX;
+    int bestCost = 0;
+
+    visited[i_src] = true;
+    path.push_back(i_src);
+
+    shortPathWithStopHelper(
+        i_src, i_dest, edgesLeft,
+        visited, path, 0, 0,
+        bestDistance, bestCost, bestPath
+    );
+
+    if (bestPath.empty()) {
+        std::cout << "No path exists.\n";
+        return;
+    }
+
+    std::cout << "Path: ";
+    for (int i = 0; i < bestPath.size(); i++) {
+        std::cout << vertices[bestPath[i]];
+        if (i != bestPath.size() - 1) std::cout << " -> ";
+    }
+
+    std::cout << "\nDistance: " << bestDistance
+              << " Cost: " << bestCost << "\n";
+}
+
+//Task 5
+template <typename T>
+void WeightedGraph<T>::airportConnect() const {
+    struct Info {
+        T airport;
+        int in = 0;
+        int out = 0;
+        int total = 0;
+    };
+
+    std::vector<Info> list(vertices.size());
+
+    for (int i = 0; i < vertices.size(); i++) {
+        list[i].airport = vertices[i];
+    }
+
+    for (int i = 0; i < edges.size(); i++) {
+        for (const Edge& e : edges[i]) {
+            list[i].out++;
+            list[e.neighbor].in++;
+        }
+    }
+
+    for (auto& a : list) {
+        a.total = a.in + a.out;
+    }
+
+    std::sort(list.begin(), list.end(), [](const Info& a, const Info& b) { 
+        return a.total > b.total; 
+    });
+
+    for (const auto& a : list) {
+        std::cout << a.airport
+                  << " In:" << a.in
+                  << " Out:" << a.out
+                  << " Total:" << a.total << "\n";
     }
 }

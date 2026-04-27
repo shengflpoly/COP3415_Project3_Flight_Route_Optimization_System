@@ -1,6 +1,7 @@
 #ifndef WEIGHTEDGRAPH_HPP
 #define WEIGHTEDGRAPH_HPP
 #include <vector>
+#include <string>
 
 class Edge {
 public:
@@ -26,14 +27,21 @@ public:
 
     void DFS() const;
     void BFS(int start = 0) const;
-    int shortestPath(const T& src, const T& dest) const;
+    int shortestPath(const T& src, const T& dest, bool print = true) const;
     bool isConnected() const;
 
     void kruskal();
 
+    void shortPathToState(const T& src, const std::string& destState) const;
+    void shortPathWithStop(const T& src, const T& dest, int stops) const;
+    void airportConnect() const;
+
+    void setState(const T& airport, const std::string& state);
+
 private:
     std::vector<T> vertices; 
     std::vector<std::vector<Edge>> edges; 
+    std::vector<std::string> states;
 
     
     int getVertexIndex(const T& vs) const;
@@ -43,6 +51,19 @@ private:
 
     int findSet(int x, std::vector<int>& parent);
     void unionSet(int a, int b, std::vector<int>& parent, std::vector<int>& rank);
+
+    void shortPathWithStopHelper(
+        int cur,
+        int dest,
+        int edgesLeft,
+        std::vector<bool>& visited,
+        std::vector<int>& path,
+        int currentDistance,
+        int currentCost,
+        int& bestDistance,
+        int& bestCost,
+        std::vector<int>& bestPath
+    ) const;
 };
 
 #include "WeightedGraph.tpp"
