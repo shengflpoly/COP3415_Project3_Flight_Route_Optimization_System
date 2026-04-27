@@ -25,9 +25,56 @@ int main(int argc, char** argv) {
         std::cout << ex.what() << std::endl;
     }
 
-    //graph.print();
-    //graph.shortestPath("IAD", "MIA");
-    graph.kruskal();
+    int Choice = 0;
+    printf("Make a choice.\n");
+    printf("1: Graph Construction & Data Handling.\n");
+    printf("2: Shortest Path (Single Pair).\n");
+    printf("3: Shortest Paths to State.\n");
+    printf("4: Shortest Path with Exact Stops.\n");
+    printf("5: Airport Connectivity Count.\n");
+    printf("6: Undirected Graph Construction.\n");
+    printf("7: Prim's Algorithm (MST).\n");
+    printf("8: Kruskal's Algorithm (MSF).\n\n");
+    std::cin >> Choice;
+    printf("\n\n\n");
+    switch(Choice){
+        //Task 1
+        case 1: 
+            graph.print();
+            break;
+        //Task 2
+        case 2: 
+            graph.shortestPath("IAD", "MIA");
+            break;
+        //Task 3 TBD
+        case 3: 
+            printf("Whoops!");
+            break;
+        //Task 4 TBD
+        case 4: 
+            printf("Whoops!");
+            break;
+        //Task 5 TBD
+        case 5: 
+            printf("Whoops!");
+            break;
+        //Task 6 TBD
+        case 6: 
+            printf("Whoops!");
+            break;
+        //Task 7 TBD
+        case 7: 
+            printf("Whoops!");
+            break;
+        //Task 8
+        case 8: 
+            graph.kruskal();
+            break;
+        //Err
+        default: 
+            printf("Whoops!");
+            break;
+    }
 
     return 0;
 }
