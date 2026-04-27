@@ -43,12 +43,6 @@ public:
 
     void setState(const T& airport, const std::string& state);
 
-    void shortPathToState(const T& src, const std::string& destState) const;
-    void shortPathWithStop(const T& src, const T& dest, int stops) const;
-    void airportConnect() const;
-
-    void setState(const T& airport, const std::string& state);
-
 private:
     std::vector<T> vertices; 
     std::vector<std::vector<Edge>> edges; 

@@ -83,14 +83,18 @@ int main(int argc, char** argv) {
         case 5: 
             graph.airportConnect();
             break;
-        //Task 6 TBD
-        case 6: 
-            printf("Whoops!\n");
+        //Task 6
+        case 6: {
+            WeightedGraph<std::string> undirected = graph.buildUndirectedGraph();
+            undirected.print();
             break;
-        //Task 7 TBD
-        case 7: 
-            printf("Whoops!\n");
+        }
+            //Task 7 TBD
+        case 7: {
+            WeightedGraph<std::string> undirected = graph.buildUndirectedGraph();
+            undirected.prim();
             break;
+        }
         //Task 8
         case 8: 
             graph.kruskal();
@@ -146,20 +150,24 @@ std::vector<std::string> split(const std::string& s) {
 }
 
 void runQuery(const std::vector<std::string>& query, WeightedGraph<std::string>& graph) {
+    if (query.size() < 6) return;
     if (query[0] == "Origin_airport") return;
 
     std::string origin = query[0];
     std::string dest = query[1];
     std::string originState = getState(query[2]);
     std::string destState = getState(query[3]);
+
     int distance = std::stoi(query[4]);
     int cost = std::stoi(query[5]);
 
     graph.insertVertex(origin);
     graph.insertVertex(dest);
-    graph.insertEdge(origin, dest, distance, cost, true);
+
     graph.setState(origin, originState);
     graph.setState(dest, destState);
+
+    graph.insertEdge(origin, dest, distance, cost, true);
 }
 
 std::string getState(const std::string& city) {
