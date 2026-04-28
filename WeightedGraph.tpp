@@ -284,6 +284,8 @@ void WeightedGraph<T>::unionSet(int a, int b, std::vector<int>& parent, std::vec
 }
 
 // Task 7:
+// Uses cost as the edge weight. Should be called on the undirected graph returned by buildUndirectedGraph().
+// Uses MinHeap as a priority queue with lazy deletion. If the graph is disconnected, reports that MST cannot be formed.
 template <typename T>
 void WeightedGraph<T>::prim() const
 {
@@ -299,7 +301,8 @@ void WeightedGraph<T>::prim() const
    
     key[0] = 0;
 
-  
+    // MinHeap stores Edge objects
+    // neighbor is vertex index and weight is cost
     MinHeap<Edge> heap;
     heap.insert(Edge(0, 0, 0, 0));
 
@@ -308,7 +311,7 @@ void WeightedGraph<T>::prim() const
     while (!heap.empty()) {
         Edge minEdge = heap.deleteMin();
         int u = minEdge.neighbor;
-
+        //Lazy deletion that skips vertices already in MST
         if (inMST[u]) continue;
 
         inMST[u] = true;
@@ -331,7 +334,7 @@ void WeightedGraph<T>::prim() const
         return;
     }
 
-    // THis prints MST edges and total cost
+    // This prints MST edges and total cost
     int totalCost = 0;
     std::cout << "\nMinimum Spanning Tree (Prim's Algorithm):\n";
     std::cout << "Edge\t\tWeight\n";
@@ -350,6 +353,10 @@ void WeightedGraph<T>::prim() const
 
 
 // Task 6:
+
+//     For each pair (u, v):
+//   - If only one directed edge exists (u->v or v->u), keep it s an undirected edge with its cost. Distance is ignored.
+//   - If both directed edges exist (u->v and v->u), keep the one with the minimum cost as the undirected edge.
 template <typename T>
 WeightedGraph<T> WeightedGraph<T>::buildUndirectedGraph() const
 {
