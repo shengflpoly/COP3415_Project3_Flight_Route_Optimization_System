@@ -12,11 +12,12 @@ void runQuery(const std::vector<std::string>& query, WeightedGraph<std::string>&
 std::string getState(const std::string& city);
 
 int main(int argc, char** argv) {
+
     if (argc != 2) {
         std::cerr << "Error: incorrect number of arguments\n";
         return 1;
     }
-
+    
     WeightedGraph<std::string> graph;
     try {
         runFromFile(argv[1], graph);

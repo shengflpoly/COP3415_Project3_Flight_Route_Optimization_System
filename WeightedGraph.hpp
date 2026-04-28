@@ -28,9 +28,10 @@ public:
     void DFS() const;
     void BFS(int start = 0) const;
     int shortestPath(const T& src, const T& dest, bool print = true) const;
-    bool isConnected() const;
-
+    
+    // Task 8
     void kruskal();
+    
     // Task 6
     WeightedGraph<T> buildUndirectedGraph() const;
     

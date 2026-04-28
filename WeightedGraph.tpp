@@ -47,7 +47,7 @@ int WeightedGraph<T>::getVertexIndex(const T& ver) const {
     return -1;
 }
 
-// TODO
+
 template <typename T>
 void WeightedGraph<T>::print() const {
     for (int i = 0; i < vertices.size(); i++) {
@@ -59,7 +59,7 @@ void WeightedGraph<T>::print() const {
     }
 }
 
-// TODO
+
 template <typename T>
 bool WeightedGraph<T>::hasEdge(int i1, int i2) const {
     if (i1 < 0 || i1 >= edges.size()) {
@@ -84,7 +84,7 @@ void WeightedGraph<T>::DFS() const {
     DFS(0, visited);
 }
 
-// TODO
+
 template <typename T>
 void WeightedGraph<T>::DFS(int i, std::vector<bool>& visited) const {
     visited[i] = true;
@@ -98,7 +98,6 @@ void WeightedGraph<T>::DFS(int i, std::vector<bool>& visited) const {
     }
 }
 
-// TODO
 template <typename T>
 void WeightedGraph<T>::BFS(int start) const {
     if (vertices.empty() || start < 0 || start >= vertices.size()) {
@@ -201,14 +200,16 @@ int WeightedGraph<T>::shortestPath(const T& src, const T& dest, bool print) cons
     return distances[i_dest];
 }
 
+// Task 8
 template <typename T>
 void WeightedGraph<T>::kruskal() {
+    // Create a structure to store edges in u (source), v (destination), cost
     struct KEdge {
         int u, v, cost;
     };
 
+    // Collect all edges and store them into a vector and process later
     std::vector<KEdge> allEdges;
-
     for (int i = 0; i < vertices.size(); i++) {
         for (const Edge& e : edges[i]) {
             if (i < e.neighbor) {
@@ -216,14 +217,16 @@ void WeightedGraph<T>::kruskal() {
             }
         }
     }
-
+    // initialize the total cost and number of vertices
     int total = 0;
     int n = vertices.size();
+
+    // initialize the parent and rank vector for the disjoint set and use of tree property later
     std::vector<int> parent(n);
     std::vector<int> rank(n, 0);
-
+    // set vertices to be their own parents that separate into sets
     for (int i = 0; i < n; i++) parent[i] = i;
-
+    // Sort edges by cost from the least to most
     for (int i = 0; i < allEdges.size() - 1; i++) {
         int minIdx = i;
         for (int j = i + 1; j < allEdges.size(); j++) {
@@ -236,12 +239,13 @@ void WeightedGraph<T>::kruskal() {
 
     std::cout << "\nMinimum Spanning Tree:\n";
     std::cout << "Edge\t\tWeight\n";
-
+    // run through the edges to link
     for (const auto& e : allEdges) {
         int rootU = findSet(e.u, parent);
         int rootV = findSet(e.v, parent);
 
         if (rootU != rootV) {
+            // unite sets
             unionSet(rootU, rootV, parent, rank);
 
             std::cout << vertices[e.u] << " - " << vertices[e.v] << "\t" << e.cost << "\n";
@@ -252,18 +256,24 @@ void WeightedGraph<T>::kruskal() {
     std::cout << "Total cost of MST: " << total << "\n";
 }
 
+// Helper function for Kruskal
 template <typename T>
 int WeightedGraph<T>::findSet(int x, std::vector<int>& parent) {
+    // use recursive functionality to find the root
     if (parent[x] != x) parent[x] = findSet(parent[x], parent);
     return parent[x];
 }
 
+// Helper function for Kruskal
 template <typename T>
 void WeightedGraph<T>::unionSet(int a, int b, std::vector<int>& parent, std::vector<int>& rank) {
+    // retrieve the root for each set
     int rootA = findSet(a, parent);
     int rootB = findSet(b, parent);
 
+    // If rootA and rootB are equal, then its the same set and will create a cycle. Therefore, rootA != rootB
     if (rootA != rootB) {
+        // use tree property to unite the sets
         if (rank[rootA] < rank[rootB]) parent[rootA] = rootB;
         else if (rank[rootA] > rank[rootB]) parent[rootB] = rootA;
         else {
