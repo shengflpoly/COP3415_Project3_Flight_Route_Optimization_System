@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
     std::string origin;
     std::string dest;
     std::string state;
-
+    // Task selection for ease of use
     int Choice = 0;
     printf("Make a choice.\n");
     printf("1: Graph Construction & Data Handling.\n");

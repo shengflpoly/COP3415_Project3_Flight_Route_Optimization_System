@@ -316,10 +316,10 @@ void WeightedGraph<T>::prim() const
 
         inMST[u] = true;
         verticesAdded++;
-
+        //Checks all neighbors incase of cheaper connections
         for (const Edge& e : edges[u]) {
             int v = e.neighbor;
-
+            // This states that if v is not in the MST and this edge is cheaper han the current then update
             if (!inMST[v] && e.cost < key[v]){
                 key[v] = e.cost;
                 parent[v] = u;
